@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Real-time ambulance dispatch management system with interactive map visualization and live status tracking">
+    <title>Emergency Dispatch System | Real-Time Ambulance Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">🚑</span>
+                    <h1 class="logo-text">DISPATCH<span class="highlight">108</span></h1>
+                </div>
+                <div class="system-status">
+                    <span class="status-badge status-active">● SYSTEM ONLINE</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="time-display">
+                    <span class="time-label">SIM TIME</span>
+                    <span class="time-value" id="currentTime">0 min</span>
+                </div>
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Active</span>
+                        <span class="stat-value" id="headerActiveCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Queue</span>
+                        <span class="stat-value" id="headerQueueCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Left Panel: Map -->
+        <section class="map-section">
+            <div class="panel-header">
+                <h2>Live Map</h2>
+                <div class="map-legend">
+                    <span class="legend-item"><span class="legend-icon hospital">🏥</span> Hospitals</span>
+                    <span class="legend-item"><span class="legend-icon ambulance">🚑</span> Ambulances</span>
+                    <span class="legend-item"><span class="legend-icon emergency">🆘</span> Emergencies</span>
+                </div>
+            </div>
+            <div class="map-container">
+                <canvas id="mapCanvas" width="800" height="600"></canvas>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="activity-log">
+                <div class="panel-header">
+                    <h2>📝 Recent Activity</h2>
+                    <button class="clear-log-btn" id="clearLogBtn" title="Clear Log">Clear</button>
+                </div>
+                <div class="activity-list" id="activityLog">
+                    <div class="activity-item">
+                        <span class="activity-time">T+0</span>
+                        <span class="activity-message">System initialized - All units ready</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Panel: Dashboard -->
+        <aside class="dashboard">
+            <!-- Ambulance Status -->
+            <section class="panel ambulance-panel">
+                <div class="panel-header">
+                    <h2>🚑 Ambulance Fleet</h2>
+                    <span class="panel-badge" id="ambulanceCount">0/5</span>
+                </div>
+                <div class="panel-content" id="ambulanceList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Hospital Status -->
+            <section class="panel hospital-panel">
+                <div class="panel-header">
+                    <h2>🏥 Hospitals</h2>
+                    <span class="panel-badge" id="hospitalBeds">0/29</span>
+                </div>
+                <div class="panel-content" id="hospitalList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Emergency Queue -->
+            <section class="panel emergency-panel">
+                <div class="panel-header">
+                    <h2>📋 Emergency Queue</h2>
+                    <span class="panel-badge" id="queueCount">0</span>
+                </div>
+                <div class="panel-content" id="emergencyQueue">
+                    <div class="empty-state">No pending emergencies</div>
+                </div>
+            </section>
+
+            <!-- Statistics -->
+            <section class="panel stats-panel">
+                <div class="panel-header">
+                    <h2>📊 Statistics</h2>
+                </div>
+                <div class="panel-content stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-card-label">Total Handled</span>
+                        <span class="stat-card-value" id="totalHandled">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-label">Avg Response</span>
+                        <span class="stat-card-value" id="avgResponse">--</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-label">Active Calls</span>
+                        <span class="stat-card-value" id="activeCalls">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-label">Available Units</span>
+                        <span class="stat-card-value" id="availableUnits">5</span>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </main>
+
+    <!-- Control Panel -->
+    <footer class="control-panel">
+        <button class="btn btn-primary" id="newEmergencyBtn" title="Report New Emergency">
+            <span class="btn-icon">📞</span>
+            New Emergency
+        </button>
+        <button class="btn btn-secondary" id="advanceTimeBtn" title="Advance Simulation Time">
+            <span class="btn-icon">⏩</span>
+            +1 Min
+        </button>
+        <button class="btn btn-secondary" id="autoRunBtn" title="Auto-Run Simulation">
+            <span class="btn-icon">▶️</span>
+            Auto Run (10 steps)
+        </button>
+        <button class="btn btn-accent" id="resetBtn" title="Reset Simulation">
+            <span class="btn-icon">🔄</span>
+            Reset
+        </button>
+    </footer>
+
+    <!-- Emergency Modal -->
+    <div class="modal" id="emergencyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📞 Emergency Call - Dispatch 108</h2>
+                <button class="modal-close" id="closeModalBtn" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="emergencyForm">
+                    <div class="form-group">
+                        <label for="callerName">Caller Name</label>
+                        <input type="text" id="callerName" placeholder="Enter name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <select id="location" required>
+                            <option value="">Select location...</option>
+                            <option value="0">City Center</option>
+                            <option value="1">Main Street</option>
+                            <option value="2">Park Avenue</option>
+                            <option value="3">Shopping Mall</option>
+                            <option value="4">University</option>
+                            <option value="5">Airport</option>
+                            <option value="6">North Market</option>
+                            <option value="7">Residential</option>
+                            <option value="8">Industrial Zone</option>
+                            <option value="9">Tech Park</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Emergency Type</label>
+                        <div class="emergency-types">
+                            <label class="type-option">
+                                <input type="radio" name="emergencyType" value="5" required>
+                                <span class="type-badge cardiac">❤️ Cardiac</span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="emergencyType" value="4">
+                                <span class="type-badge trauma">🩹 Trauma</span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="emergencyType" value="3">
+                                <span class="type-badge respiratory">🫁 Respiratory</span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="emergencyType" value="2">
+                                <span class="type-badge infection">🦠 Infection</span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="emergencyType" value="1">
+                                <span class="type-badge general">⚕️ General</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="patientAge">Patient Age</label>
+                        <input type="number" id="patientAge" placeholder="Enter age" min="0" max="120" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Patient Criticality Level</label>
+                        <div class="criticality-options">
+                            <label class="criticality-option critical">
+                                <input type="radio" name="criticality" value="4" required>
+                                <div class="criticality-badge">
+                                    <span class="criticality-icon">🚨</span>
+                                    <div>
+                                        <strong>CRITICAL</strong>
+                                        <small>Life-threatening, unconscious, not breathing</small>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="criticality-option high">
+                                <input type="radio" name="criticality" value="3">
+                                <div class="criticality-badge">
+                                    <span class="criticality-icon">⚠️</span>
+                                    <div>
+                                        <strong>HIGH</strong>
+                                        <small>Severe pain, heavy bleeding, difficulty breathing</small>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="criticality-option medium">
+                                <input type="radio" name="criticality" value="2">
+                                <div class="criticality-badge">
+                                    <span class="criticality-icon">⚡</span>
+                                    <div>
+                                        <strong>MEDIUM</strong>
+                                        <small>Serious but conscious and stable</small>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="criticality-option low">
+                                <input type="radio" name="criticality" value="1">
+                                <div class="criticality-badge">
+                                    <span class="criticality-icon">ℹ️</span>
+                                    <div>
+                                        <strong>LOW</strong>
+                                        <small>Minor injury or illness</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Dispatch Ambulance</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notifications"></div>
+
+    <script src="app.js"></script>
+    <script src="map.js"></script>
+</body>
+
+</html>
